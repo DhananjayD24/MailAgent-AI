@@ -41,7 +41,7 @@ class GmailClient:
         return r.json()
 
     async def list_recent_thread_ids(self, days: int, limit: int, exclude_promotions: bool) -> list[str]:
-        query = f"newer_than:{days}d"
+        query = f"newer_than:{days}d from:me"
         if exclude_promotions:
             query += " -category:promotions -category:social"
 
