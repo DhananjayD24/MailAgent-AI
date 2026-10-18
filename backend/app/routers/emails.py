@@ -45,14 +45,28 @@ async def list_relevant_emails(
     for t in threads:
         if not has_human_participation(t):
             continue
-        cat, _score = classify(t.subject, " ".join(m.snippet for m in t.messages))
+
+        # Only show conversations where YOU sent the latest message.
+        # This means you are currently waiting for a reply.
+        if not t.last.is_from_me:
+            continue
+
+        cat, _score = classify(
+            t.subject,
+            " ".join(m.snippet for m in t.messages)
+        )
+
         if cat is None:
             continue
+
         if category and cat != category:
             continue
-        last = t.last
-        if awaiting_reply is not None and last.is_from_me != awaiting_reply:
+
+        if awaiting_reply is not None and t.last.is_from_me != awaiting_reply:
             continue
+
+        last = t.last
+
         out.append(
             EmailThreadSummary(
                 thread_id=t.id,
@@ -63,7 +77,7 @@ async def list_relevant_emails(
                 snippet=last.snippet,
                 category=cat,
                 message_count=len(t.messages),
-                awaiting_reply=last.is_from_me,
+                awaiting_reply=True,
                 has_followup=t.id in has_followup,
                 followup_sent=t.id in followup_sent,
             )
